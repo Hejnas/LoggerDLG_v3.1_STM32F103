@@ -2,7 +2,8 @@
 
 #define SERIAL_BAUD      115200
 
-#define pinLED 13
+//definicja nr pinow
+#define pinLED PC13
 #define MS5611_SS PA0
 #define FLASH_SS  PA1
 
@@ -98,14 +99,6 @@ void setup()
   Serial.print("first flash free addres: ");
   Serial.println(FlashAddres);
 
-  //sprawdzenie czy pamięć nie jest pełna tzn < 15 min
-  if(FlashAddres > (Flash_max_addres - 900))
-  {
-    FlashAddres = Flash_write_string(FlashAddres,"!!! MEM FULL !!!");
-    FlashAddres = Flash_write_string(FlashAddres,String(FlashAddres));
-    Logger_Error(6);
-  }
-
   //sprawdzenie czy PCmode
   input = Serial.readString();
   Serial.println("autor: Hejnas");
@@ -163,14 +156,6 @@ void loop()
       Serial.print(dane_do_flash);
 
       FlashAddres = Flash_write_string(FlashAddres,dane_do_flash); //zapisz ciąg do Flash
-      
-      //sprawdzenie czy pamięć nie jest pełna tzn < 15 min
-      if(FlashAddres > (Flash_max_addres - 900))
-      {
-        FlashAddres = Flash_write_string(FlashAddres,"!!! MEM FULL !!!");
-        FlashAddres = Flash_write_string(FlashAddres,String(FlashAddres));
-        Logger_Error(6);
-      }
     
       LED_ping(1);
 
@@ -216,10 +201,6 @@ void Logger_Error(uint8_t error_num){
     case 5:   //Flash is not formated
       error_desc = "error 5 - błąd zapisu do FAT";
       LEDping_count = 5;
-      break;
-    case 6:   //Flash is not formated
-      error_desc = "error 6 - memory Full";
-      LEDping_count = 6;
       break;
     default:
       error_desc = "error ??? - error return value altiLogger_error";
@@ -354,9 +335,9 @@ bool init_MS5611(void){
   {
     LED_off();
     MS5611_write(MS5611_CMD_RESET); //reset MS5611
-    delay(50);
+    delay(500);
     LED_on();
-    delay(450);    
+    delay(500);    
   }
   
   //odczytanie danych kalibracyjnych
@@ -378,7 +359,7 @@ bool init_MS5611(void){
   readConv();
   referencePressure = calcPressure();
   
-  wyswietlCx();
+  //wyswietlCx();
 
   return true;
   
@@ -392,11 +373,6 @@ bool init_MS5611(void){
 // ---------------------------------------------------
 
 bool init_Flash(void){
-
-  LED_off();
-  delay(50);
-  LED_on();
-  delay(450);
 
   selectFlash();
   SPI.transfer(0x90); //read ID command
@@ -439,11 +415,6 @@ void wyswietlCx(){
 //
 // ---------------------------------------------------
 byte Flash_mem_format(){
-
-  LED_off();
-  delay(50);
-  LED_on();
-  delay(450);
   
 //Flash check logger_id at the beginning of memory
 //if != ltiLogger_ID then return 4 //error 4 "Flash memory not formated"
@@ -883,50 +854,15 @@ uint32_t Flash_write_string(uint32_t addr, String str){
  *      
  *
  * ---------------------------------------------------*/
-uint32_t Flash_find_start_address_old(){
-  uint32_t i;
-  i = Flash_data_0_addres;
-
-  while(Flash_read_8bit(i)!=0xFF){
-    i++;
-  }
-  return i;
-}//end of Flash_find_start_address_old
-
-
-/* ---------------------------------------------------
- *
- *      
- *      
- *      
- *
- * ---------------------------------------------------*/
 uint32_t Flash_find_start_address(){
-
-  LED_off();
-  delay(50);
-  LED_on();
-  delay(200);
-  
   uint32_t i;
-  uint32_t Ffsa_max = Flash_max_addres;
   i = Flash_data_0_addres;
-
-  for(uint16_t j = 1; j < 0xFFF; j++){
-
-    if(Flash_read_8bit(i + Ffsa_max / (j * 2))!=0xFF)
-    {
-      i = i + Ffsa_max / (j * 2);
-    }
-  }
-  
   while(Flash_read_8bit(i)!=0xFF){
     i++;
   }
-  
   return i;
-  
 }//end of Flash_find_start_address
+
 
 /* ---------------------------------------------------
  *
@@ -936,11 +872,6 @@ uint32_t Flash_find_start_address(){
  *
  * ---------------------------------------------------*/
 uint8_t find_file_num(){
-
-  LED_off();
-  delay(50);
-  LED_on();
-  delay(450);
 
   uint8_t return_val;
   uint8_t ffnData;
