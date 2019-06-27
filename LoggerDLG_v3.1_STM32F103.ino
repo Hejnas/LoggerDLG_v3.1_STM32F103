@@ -2,11 +2,6 @@
 
 #define SERIAL_BAUD      115200
 
-//definicja nr pinow
-//#define pinLED PC13
-//#define MS5611_SS PA0
-//#define FLASH_SS  PA1
-
 #define pinLED 13
 #define MS5611_SS PA0
 #define FLASH_SS  PA1
